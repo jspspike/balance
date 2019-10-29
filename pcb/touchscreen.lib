@@ -1,0 +1,20 @@
+EESchema-LIBRARY Version 2.4
+#encoding utf-8
+#
+# Resistive_Touch
+#
+DEF Resistive_Touch J 0 40 Y Y 1 F N
+F0 "J" 300 100 50 H V C CNN
+F1 "Resistive_Touch" 0 250 50 H V C CNN
+F2 "Connector_FFC-FPC:TE_84952-4_1x04-1MP_P1.0mm_Horizontal" 0 350 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+S -250 -50 250 200 0 1 0 N
+X X1 1 -150 -150 100 U 50 50 1 1 B
+X Y1 2 -50 -150 100 U 50 50 1 1 B
+X X2 3 50 -150 100 U 50 50 1 1 B
+X Y2 4 150 -150 100 U 50 50 1 1 B
+ENDDRAW
+ENDDEF
+#
+#End Library
