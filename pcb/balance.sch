@@ -15,7 +15,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L TM4C123GH6PMI:TM4C123GH6PMI U1
+L balance-rescue:TM4C123GH6PMI-TM4C123GH6PMI U1
 U 1 1 5DB37352
 P 2800 3550
 F 0 "U1" H 2800 6026 50  0000 C CNN
@@ -449,8 +449,6 @@ F 3 "" H 5850 4050 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	5850 3850 5850 4050
-Text Notes 7050 3750 0    50   ~ 0
-less than 3 ohm ESR required
 Wire Wire Line
 	5850 3850 6700 3850
 Wire Wire Line
@@ -521,7 +519,7 @@ U 1 1 5DCBD4A2
 P 7450 2600
 F 0 "J5" H 7478 2576 50  0000 L CNN
 F 1 "UART (Bluetooth)" H 7478 2485 50  0000 L CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Horizontal" H 7450 2600 50  0001 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical" H 7450 2600 50  0001 C CNN
 F 3 "~" H 7450 2600 50  0001 C CNN
 	1    7450 2600
 	1    0    0    -1  
@@ -890,7 +888,7 @@ F 3 "" H 9600 1500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L CMT-8530S-SMT:CMT-8530S-SMT LS1
+L balance-rescue:CMT-8530S-SMT-CMT-8530S-SMT LS1
 U 1 1 5E11A03B
 P 8200 5000
 F 0 "LS1" H 8304 5046 50  0000 L CNN
@@ -910,23 +908,6 @@ Wire Wire Line
 	8200 5750 8200 5900
 Text Label 2000 1250 2    50   ~ 0
 RESET
-$Comp
-L PJ-102AH:PJ-102AH J4
-U 1 1 5E185784
-P 7750 1400
-F 0 "J4" H 7498 1459 50  0000 R CNN
-F 1 "PJ-102AH" H 7498 1368 50  0000 R CNN
-F 2 "PJ-102AH:CUI_PJ-102AH" H 7750 1400 50  0001 L BNN
-F 3 "None" H 7750 1400 50  0001 L BNN
-F 4 "2.0 x 6.5 mm, 5.0 A, Horizontal, Through Hole, Tapered Pins, Dc Power Jack Connector" H 7750 1400 50  0001 L BNN "Field4"
-F 5 "PJ-102AH" H 7750 1400 50  0001 L BNN "Field5"
-F 6 "Unavailable" H 7750 1400 50  0001 L BNN "Field6"
-F 7 "https://www.cuidevices.com/product/interconnect/connectors/dc-power-connectors/jacks/pj-102ah?utm_source=snapeda.com&utm_medium=referral&utm_campaign=snapedaBOM" H 7750 1400 50  0001 L BNN "Field7"
-F 8 "None" H 7750 1400 50  0001 L BNN "Field8"
-F 9 "CUI Devices" H 7750 1400 50  0001 L BNN "Field9"
-	1    7750 1400
-	-1   0    0    -1  
-$EndComp
 $Comp
 L Connector_Generic:Conn_02x03_Top_Bottom J6
 U 1 1 5E1A3466
@@ -1162,9 +1143,22 @@ PA7
 Text Label 10000 5350 0    50   ~ 0
 PC4
 Text Label 10000 5450 0    50   ~ 0
-PC6
+PC5
 Text Label 10000 5550 0    50   ~ 0
 PC6
 Text Label 10000 5650 0    50   ~ 0
 PC7
+$Comp
+L Connector:Barrel_Jack_Switch J4
+U 1 1 5DC06347
+P 7850 1400
+F 0 "J4" H 7620 1442 50  0000 R CNN
+F 1 "Barrel_Jack_Switch" H 7620 1351 50  0000 R CNN
+F 2 "Connector_BarrelJack:BarrelJack_CUI_PJ-102AH_Horizontal" H 7900 1360 50  0001 C CNN
+F 3 "~" H 7900 1360 50  0001 C CNN
+	1    7850 1400
+	-1   0    0    -1  
+$EndComp
+Text Notes 7050 3750 0    50   ~ 0
+less than 3 ohm ESR required
 $EndSCHEMATC

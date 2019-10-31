@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name pineapple)(type KiCad)(uri ${KIPRJMOD}/pineapple.pretty)(options "")(descr ""))
+)

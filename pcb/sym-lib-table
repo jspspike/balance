@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name touchscreen)(type Legacy)(uri ${KIPRJMOD}/touchscreen.lib)(options "")(descr ""))
+  (lib (name balance-rescue)(type Legacy)(uri ${KIPRJMOD}/balance-rescue.lib)(options "")(descr ""))
 )

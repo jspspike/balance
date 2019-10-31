@@ -1,34 +1,28 @@
 EESchema-LIBRARY Version 2.4
 #encoding utf-8
 #
-# CMT-8530S-SMT_CMT-8530S-SMT
+# Connector_Barrel_Jack_Switch
 #
-DEF CMT-8530S-SMT_CMT-8530S-SMT LS 0 40 N N 1 L N
-F0 "LS" -150 350 50 H V L BNN
-F1 "CMT-8530S-SMT_CMT-8530S-SMT" -150 -451 50 H V L BNN
-F2 "CUI_CMT-8530S-SMT" 0 0 50 H I L BNN
-F3 "CUI" 0 0 50 H I L BNN
-F4 "8.5 mm, 3.6 Vo-p, 90 dB, Surface Mount _SMT_, Magnetic Audio Transducer Buzzer" 0 0 50 H I L BNN
-F5 "CMT-8530S-SMT-TR" 0 0 50 H I L BNN
-F6 "Unavailable" 0 0 50 H I L BNN
-F7 "https://www.cuidevices.com/product/audio/buzzers/audio-transducers/cmt-8530s-smt-tr?utm_source=snapeda.com&utm_medium=referral&utm_campaign=snapedaBOM" 0 0 50 H I L BNN
-F8 "None" 0 0 50 H I L BNN
-F9 "CUI Devices" 0 0 50 H I L BNN
+DEF Connector_Barrel_Jack_Switch J 0 20 Y N 1 F N
+F0 "J" 0 210 50 H V C CNN
+F1 "Connector_Barrel_Jack_Switch" 0 -200 50 H V C CNN
+F2 "" 50 -40 50 H I C CNN
+F3 "" 50 -40 50 H I C CNN
+$FPLIST
+ BarrelJack*
+$ENDFPLIST
 DRAW
-T 0 -75 50 70 0 0 0 + Normal 0 L B
-P 2 0 0 10 -25 -50 -25 50 N
-P 2 0 0 10 -25 50 0 50 N
-P 2 0 0 10 0 -50 -25 -50 N
-P 2 0 0 10 0 -50 0 -100 N
-P 2 0 0 10 0 50 0 100 N
-P 2 0 0 10 0 50 25 50 N
-P 2 0 0 10 25 -50 0 -50 N
-P 2 0 0 10 25 50 25 -50 N
-P 2 0 0 10 25 50 75 125 N
-P 2 0 0 10 75 -125 25 -50 N
-P 2 0 0 10 75 125 75 -125 N
-X N N 0 -200 100 U 40 40 0 0 P
-X P P 0 200 100 D 40 40 0 0 P
+A -130 100 25 901 -901 0 1 10 F -130 125 -130 75
+A -130 100 25 901 -901 0 1 10 N -130 125 -130 75
+S -200 150 200 -150 0 1 10 f
+S 145 125 -130 75 0 1 10 F
+P 2 0 1 10 50 -90 75 -65 N
+P 2 0 1 10 200 100 150 100 N
+P 4 0 1 10 200 0 50 0 50 -90 25 -65 N
+P 6 0 1 10 -150 -100 -100 -100 -50 -50 0 -100 100 -100 200 -100 N
+X ~ 1 300 100 100 L 50 50 1 1 P
+X ~ 2 300 -100 100 L 50 50 1 1 P
+X ~ 3 300 0 100 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
@@ -286,40 +280,6 @@ X - 3 -300 -100 100 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# PJ-102AH_PJ-102AH
-#
-DEF PJ-102AH_PJ-102AH J 0 40 Y N 1 L N
-F0 "J" -300 200 50 H V L BNN
-F1 "PJ-102AH_PJ-102AH" -300 -200 50 H V L BNN
-F2 "CUI_PJ-102AH" 0 0 50 H I L BNN
-F3 "None" 0 0 50 H I L BNN
-F4 "2.0 x 6.5 mm, 5.0 A, Horizontal, Through Hole, Tapered Pins, Dc Power Jack Connector" 0 0 50 H I L BNN
-F5 "PJ-102AH" 0 0 50 H I L BNN
-F6 "Unavailable" 0 0 50 H I L BNN
-F7 "https://www.cuidevices.com/product/interconnect/connectors/dc-power-connectors/jacks/pj-102ah?utm_source=snapeda.com&utm_medium=referral&utm_campaign=snapedaBOM" 0 0 50 H I L BNN
-F8 "None" 0 0 50 H I L BNN
-F9 "CUI Devices" 0 0 50 H I L BNN
-DRAW
-A -225 100 50 899 -900 0 0 6 N -225 50 -225 150
-P 2 0 0 6 -225 150 -50 150 N
-P 2 0 0 6 -150 -50 -175 -100 N
-P 2 0 0 6 -125 -100 -150 -50 N
-P 2 0 0 6 -50 25 0 25 N
-P 2 0 0 6 -50 50 -225 50 N
-P 2 0 0 6 -50 50 -50 25 N
-P 2 0 0 6 -50 150 -50 50 N
-P 2 0 0 6 -50 175 -50 150 N
-P 2 0 0 6 0 -100 -125 -100 N
-P 2 0 0 6 0 0 0 -100 N
-P 2 0 0 6 0 25 0 175 N
-P 2 0 0 6 0 175 -50 175 N
-P 3 0 0 6 0 -100 -20 -50 20 -50 F
-X 1 1 200 100 200 L 40 40 0 0 P
-X 2 2 200 -100 200 L 40 40 0 0 P
-X 3 3 200 0 200 L 40 40 0 0 P
-ENDDRAW
-ENDDEF
-#
 # Regulator_Linear_LM2937xS
 #
 DEF Regulator_Linear_LM2937xS U 0 10 Y Y 1 F N
@@ -356,11 +316,65 @@ X 2 2 200 0 100 L 50 50 0 1 P
 ENDDRAW
 ENDDEF
 #
-# TM4C123GH6PMI_TM4C123GH6PMI
+# Transistor_BJT_MMBT3904
 #
-DEF TM4C123GH6PMI_TM4C123GH6PMI U 0 40 Y Y 1 L N
+DEF Transistor_BJT_MMBT3904 Q 0 0 Y N 1 F N
+F0 "Q" 200 75 50 H V L CNN
+F1 "Transistor_BJT_MMBT3904" 200 0 50 H V L CNN
+F2 "Package_TO_SOT_SMD:SOT-23" 200 -75 50 H I L CIN
+F3 "" 0 0 50 H I L CNN
+ALIAS BC818 BC847 BC848 BC849 BC850 MMBT3904 MMBT5550L MMBT5551L
+$FPLIST
+ SOT?23*
+$ENDFPLIST
+DRAW
+C 50 0 111 0 1 10 N
+P 2 0 1 0 25 25 100 100 N
+P 3 0 1 0 25 -25 100 -100 100 -100 N
+P 3 0 1 20 25 75 25 -75 25 -75 N
+P 5 0 1 0 50 -70 70 -50 90 -90 50 -70 50 -70 F
+X B 1 -200 0 225 R 50 50 1 1 I
+X E 2 100 -200 100 U 50 50 1 1 P
+X C 3 100 200 100 D 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# balance-rescue_CMT-8530S-SMT-CMT-8530S-SMT
+#
+DEF balance-rescue_CMT-8530S-SMT-CMT-8530S-SMT LS 0 40 N N 1 L N
+F0 "LS" -150 350 50 H V L BNN
+F1 "balance-rescue_CMT-8530S-SMT-CMT-8530S-SMT" -150 -451 50 H V L BNN
+F2 "CUI_CMT-8530S-SMT" 0 0 50 H I L BNN
+F3 "CUI" 0 0 50 H I L BNN
+F4 "8.5 mm, 3.6 Vo-p, 90 dB, Surface Mount _SMT_, Magnetic Audio Transducer Buzzer" 0 0 50 H I L BNN
+F5 "CMT-8530S-SMT-TR" 0 0 50 H I L BNN
+F6 "Unavailable" 0 0 50 H I L BNN
+F7 "https://www.cuidevices.com/product/audio/buzzers/audio-transducers/cmt-8530s-smt-tr?utm_source=snapeda.com&utm_medium=referral&utm_campaign=snapedaBOM" 0 0 50 H I L BNN
+F8 "None" 0 0 50 H I L BNN
+F9 "CUI Devices" 0 0 50 H I L BNN
+DRAW
+T 0 -75 50 70 0 0 0 + Normal 0 L B
+P 2 0 0 10 -25 -50 -25 50 N
+P 2 0 0 10 -25 50 0 50 N
+P 2 0 0 10 0 -50 -25 -50 N
+P 2 0 0 10 0 -50 0 -100 N
+P 2 0 0 10 0 50 0 100 N
+P 2 0 0 10 0 50 25 50 N
+P 2 0 0 10 25 -50 0 -50 N
+P 2 0 0 10 25 50 25 -50 N
+P 2 0 0 10 25 50 75 125 N
+P 2 0 0 10 75 -125 25 -50 N
+P 2 0 0 10 75 125 75 -125 N
+X N N 0 -200 100 U 40 40 0 0 P
+X P P 0 200 100 D 40 40 0 0 P
+ENDDRAW
+ENDDEF
+#
+# balance-rescue_TM4C123GH6PMI-TM4C123GH6PMI
+#
+DEF balance-rescue_TM4C123GH6PMI-TM4C123GH6PMI U 0 40 Y Y 1 L N
 F0 "U" -600 2401 50 H V L BNN
-F1 "TM4C123GH6PMI_TM4C123GH6PMI" 0 0 50 H I L BNN
+F1 "balance-rescue_TM4C123GH6PMI-TM4C123GH6PMI" 0 0 50 H I L BNN
 F2 "QFP50P1200X1200X160-64N" 0 0 50 H I L BNN
 F3 "MCU 32-Bit Tiva C ARM Cortex M4F RISC 256KB Flash 1.2V/3.3V 64-Pin LQFP Tray/Tube" 0 0 50 H I L BNN
 F4 "https://www.digikey.com/product-detail/en/texas-instruments/TM4C123GH6PMI/296-35848-ND/4036462?utm_source=snapeda&utm_medium=aggregator&utm_campaign=symbol" 0 0 50 H I L BNN
@@ -438,29 +452,6 @@ X PD3 64 -800 -900 200 R 40 40 0 0 B
 X PE2 7 -800 -1600 200 R 40 40 0 0 B
 X PE1 8 -800 -1500 200 R 40 40 0 0 B
 X PE0 9 -800 -1400 200 R 40 40 0 0 B
-ENDDRAW
-ENDDEF
-#
-# Transistor_BJT_MMBT3904
-#
-DEF Transistor_BJT_MMBT3904 Q 0 0 Y N 1 F N
-F0 "Q" 200 75 50 H V L CNN
-F1 "Transistor_BJT_MMBT3904" 200 0 50 H V L CNN
-F2 "Package_TO_SOT_SMD:SOT-23" 200 -75 50 H I L CIN
-F3 "" 0 0 50 H I L CNN
-ALIAS BC818 BC847 BC848 BC849 BC850 MMBT3904 MMBT5550L MMBT5551L
-$FPLIST
- SOT?23*
-$ENDFPLIST
-DRAW
-C 50 0 111 0 1 10 N
-P 2 0 1 0 25 25 100 100 N
-P 3 0 1 0 25 -25 100 -100 100 -100 N
-P 3 0 1 20 25 75 25 -75 25 -75 N
-P 5 0 1 0 50 -70 70 -50 90 -90 50 -70 50 -70 F
-X B 1 -200 0 225 R 50 50 1 1 I
-X E 2 100 -200 100 U 50 50 1 1 P
-X C 3 100 200 100 D 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
