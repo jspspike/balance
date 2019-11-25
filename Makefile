@@ -1,20 +1,10 @@
 SRCS = $(wildcard src/*.c) $(wildcard lib/*.c)
 OBJS = $(addprefix obj/,$(notdir $(SRCS:.c=.o)))
 
-OS = $(shell lsb_release -si)
-
-ifeq ($(OS), Arch)
-	LIB_PREFIX = /usr
-	LIB_SUFFIX = v7e-m+fp/hard
-else
-	LIB_PREFIX = /usr/lib
-	LIB_SUFFIX = v7e-m/fpv4-sp
-endif
-
 CC = clang --target=thumbv7em-unknown-none-eabi -Wno-keyword-macro -fshort-enums
-HEADERS = -I$(LIB_PREFIX)/arm-none-eabi/include
-LIBS = -L$(LIB_PREFIX)/arm-none-eabi/lib/thumb/$(LIB_SUFFIX)
-LIBS += -L/usr/lib/gcc/arm-none-eabi/9.2.0
+HEADERS = -I/usr/arm-none-eabi/include
+LIBS = -L/usr/arm-none-eabi/lib/thumb/v7e-m+fp/hard
+LIBS += -L/usr/lib/gcc/arm-none-eabi/9.2.0/thumb/v7e-m+fp/hard/
 
 CFLAGS = -ggdb -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -Wall -pedantic
 CFLAGS += -fdata-sections -ffunction-sections -MD -std=c99
@@ -31,8 +21,8 @@ obj/%.o: lib/%.c
 	$(CC) -o $@ $^ -Iinc $(CFLAGS) -c
 
 out/out.elf: $(OBJS)
-	ld.lld -o $@ $^ $(LIBS) -lgcc -lc_nano -lnosys -lm \
-		-T misc/tm4c.ld -u _printf_float -u _scanf_float
+	ld.lld -o $@ $^ $(LIBS) -lgcc -lc_nano -lnosys -lm -T misc/tm4c.ld \
+		-u _printf_float -u _scanf_float
 
 flash: out/out.elf
 	$(OPENOCD) -c "program out/out.elf verify exit"
@@ -51,7 +41,7 @@ debug_gui: flash
 		out/out.elf
 
 size: out/out.elf
-	llvm-nm  --demangle --print-size --size-sort --no-weak --radix=d \
+	llvm-nm --demangle --print-size --size-sort --no-weak --radix=d \
 	out/out.elf | cut -f 2,4 -d ' ' | numfmt --field 1 --to=iec \
 	--padding -6 | sed '/^0/d'
 

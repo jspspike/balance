@@ -10,6 +10,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 volatile uint32_t delay_timer;
 
@@ -61,6 +62,9 @@ void pwm_init(void) {
     ROM_PWMGenPeriodSet(PWM1_BASE, PWM_GEN_3, 12500);
     ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, 1875); // 1.5ms for servo pulse
     ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_2, 1875);
+    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4, 1); // 0 pulse width doesn't work
+    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_3, 1);
+    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_6, 1);
     // TODO: check if 0 width by default
     ROM_PWMOutputState(PWM0_BASE, PWM_OUT_0_BIT | PWM_OUT_2_BIT | PWM_OUT_4_BIT,
                        true);
@@ -82,10 +86,11 @@ void uart_init(void) {
     ROM_UARTFIFOLevelSet(UART0_BASE, UART_FIFO_TX1_8, UART_FIFO_RX1_8);
     ROM_UARTFIFOEnable(UART0_BASE);
     ROM_UARTEnable(UART0_BASE);
+
+    setvbuf(stdout, NULL, _IONBF, 0); // disable buffered output
 }
 
 void init(void) {
-    // Clocking and peripheral control
     ROM_SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_XTAL_16MHZ |
                        SYSCTL_OSC_MAIN);
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
@@ -100,55 +105,61 @@ void init(void) {
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC1);
-
     ROM_SysTickEnable();
-
     pwm_init();
-
     uart_init();
-
-    setvbuf(stdout, NULL, _IONBF, 0); // disable buffered output
 }
+
+const int servo_range = 625;
+const int x_servo_zero = 1875;
+const int y_servo_zero = 1875;
 
 // pos ∈ [-1,1]
 void set_x(float pos) {
-    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, 1875 + pos * 625);
+    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0,
+                         x_servo_zero + pos * servo_range);
 }
 
 // pos ∈ [-1,1]
 void set_y(float pos) {
-    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_2, 1875 + pos * 625);
+    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_2,
+                         y_servo_zero + pos * servo_range);
+}
+
+int max(int a, int b) {
+    return a > b ? a : b;
 }
 
 // brightness ∈ [0,1]
 void set_blue(float brightness) {
-    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4, brightness * 12500);
+    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4, max(1, brightness * 12500));
 }
 
 // brightness ∈ [0,1]
 void set_red(float brightness) {
-    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_6, brightness * 12500);
+    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_6, max(1, brightness * 12500));
 }
 
-void blink_blue(void) {
-    set_blue(0.5);
-    wait_ms(100);
-    set_blue(0);
+void blink_red(void) {
+    set_red(0.1f);
+    wait_ms(50);
+    set_red(0);
 }
 
 int main(void) {
     init();
+    printf("%f\n\r", 1.4f);
     float xpos = 0;
     float ypos = 0;
     while (1) {
-        blink_blue();
+        blink_red();
         char c = ROM_UARTCharGet(UART0_BASE);
         switch (c) {
-        case 'w': set_y(ypos = fmax(1, ypos + 0.1)); break;
-        case 'a': set_x(xpos = fmin(-1, xpos - 0.1)); break;
-        case 's': set_y(ypos = fmin(-1, ypos - 0.1)); break;
-        case 'd': set_x(xpos = fmax(1, xpos + 0.1)); break;
+        case 'w': set_y(ypos = fmin(1, ypos + 0.1)); break;
+        case 'a': set_x(xpos = fmax(-1, xpos - 0.1)); break;
+        case 's': set_y(ypos = fmax(-1, ypos - 0.1)); break;
+        case 'd': set_x(xpos = fmin(1, xpos + 0.1)); break;
         }
-        printf("%f, %f\n\r", xpos, ypos);
+        printf("%.1f, %.1f\n\r", xpos, ypos);
     }
 }
