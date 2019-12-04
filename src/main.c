@@ -7,12 +7,14 @@
 #include "tivaware/sysctl.h"
 #include "tivaware/timer.h"
 #include "tivaware/uart.h"
+#include "screen.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 volatile uint32_t delay_timer;
+extern uint32_t adc_value;
 
 void systick_handler(void) {
     --delay_timer;
@@ -108,6 +110,7 @@ void init(void) {
     ROM_SysTickEnable();
     pwm_init();
     uart_init();
+    adc_init();
 }
 
 const int servo_range = 625;
@@ -161,5 +164,6 @@ int main(void) {
         case 'd': set_x(xpos = fmin(1, xpos + 0.1)); break;
         }
         printf("%.1f, %.1f\n\r", xpos, ypos);
+        printf("%d\n\r", adc_value);
     }
 }
