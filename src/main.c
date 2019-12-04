@@ -14,7 +14,6 @@
 #include <stdlib.h>
 
 volatile uint32_t delay_timer;
-extern uint32_t adc_value;
 
 void systick_handler(void) {
     --delay_timer;
@@ -164,6 +163,5 @@ int main(void) {
         case 'd': set_x(xpos = fmin(1, xpos + 0.1)); break;
         }
         printf("%.1f, %.1f\n\r", xpos, ypos);
-        printf("%d\n\r", adc_value);
     }
 }
