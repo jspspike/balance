@@ -7,6 +7,7 @@
 #include "tivaware/sysctl.h"
 #include "tivaware/timer.h"
 #include "tivaware/uart.h"
+#include "screen.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -108,6 +109,7 @@ void init(void) {
     ROM_SysTickEnable();
     pwm_init();
     uart_init();
+    adc_init();
 }
 
 const int servo_range = 625;
