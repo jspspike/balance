@@ -9,6 +9,7 @@
 !sim/
 !misc/
 !pcb/
+!kludge/
 !**/*.c
 !**/*.s
 !**/*.h
@@ -18,6 +19,7 @@
 !**/*.rules
 
 !**/*.kicad
+!**/*.kicad_pcb
 !**/*.pro
 !**/*.sch
 !**/*.brd
