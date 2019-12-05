@@ -121,7 +121,7 @@ const int y_servo_zero = 1875;
 void set_x(float pos) {
 
     pos *= -1;
-    pos += .18;
+    pos -= .14;
 
     pos = fmin(pos, 0.8);
     pos = fmax(pos, -0.8);
@@ -134,7 +134,7 @@ void set_x(float pos) {
 void set_y(float pos) {
     
     pos *= -1;
-    pos -= .12;
+    pos -= .14;
 
     pos = fmin(pos, 0.8);
     pos = fmax(pos, -0.8);
@@ -167,16 +167,16 @@ int main(void) {
     init();
     printf("%f\n\r", 1.4f);
 
-    pid xpid = pid_init(0.7, 0.0, 0.0, 100.0);
-    pid ypid = pid_init(0.7, 0.0, 0.0, 100.0);
+    pid xpid = pid_init(0.5f, 0.001f, 0.0f, 0.1f);
+    pid ypid = pid_init(0.5f, 0.001f, 0.0f, 0.1f);
         float xpos = 0.0;
         float ypos = 0.0;
         set_x(0.0f);
         set_y(0.0f);
 
+        blink_red();
     while (1) {
-        /*blink_red();
-        char c = ROM_UARTCharGet(UART0_BASE);
+        /*char c = ROM_UARTCharGet(UART0_BASE);
         switch (c) {
         case 'w': set_y(ypos = fmin(1, ypos + 0.01f)); break;
         case 'a': set_x(xpos = fmax(-1, xpos - 0.01f)); break;
@@ -185,12 +185,20 @@ int main(void) {
         }
         printf("%.2f, %.2f\n\r", xpos, ypos);*/
 
-        float xpos = pid_update(&xpid, screen_getX());
-        float ypos = pid_update(&ypid, screen_getY());
 
+      ROM_GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE, GPIO_PIN_7);
+      ROM_GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_7, GPIO_PIN_7);
+        adc1_read();
+        xpos = pid_update(&xpid, screen_getX());
         set_x(xpos);
+
+        adc0_read();
+        ypos = pid_update(&ypid, screen_getY());
         set_y(ypos);
-        
-        printf("%.2f %.2f\n\r", screen_getX(), screen_getY());
+        ROM_GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_7, 0);
+        wait_ms(1);
+        //printf("%.4f \n\r", ypos);
+
+        //printf("%.2f %.2f\n\r", screen_getX(), screen_getY());
     }
 }
