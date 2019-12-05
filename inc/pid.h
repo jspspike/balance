@@ -9,4 +9,4 @@ struct pid {
 
 pid pid_init(float p, float i, float d, float interval);
 
-float update(pid* p, float error);
+float pid_update(pid* p, float error);
