@@ -59,7 +59,7 @@ void adc_init(void) {
 }
 
 void pwm_init(void) {
-    // ROM_GPIOPinConfigure(GPIO_PB6_M0PWM0);
+    ROM_GPIOPinConfigure(GPIO_PB6_M0PWM0);
     ROM_GPIOPinConfigure(GPIO_PB4_M0PWM2);
     ROM_GPIOPinConfigure(GPIO_PE4_M0PWM4);
     ROM_GPIOPinConfigure(GPIO_PE5_M1PWM3);
@@ -70,17 +70,17 @@ void pwm_init(void) {
     ROM_PWMGenConfigure(PWM0_BASE, PWM_GEN_0, PWM_GEN_MODE_DBG_RUN);
     ROM_PWMGenConfigure(PWM0_BASE, PWM_GEN_1, PWM_GEN_MODE_DBG_RUN);
     ROM_PWMGenConfigure(PWM0_BASE, PWM_GEN_2, PWM_GEN_MODE_DBG_RUN);
-    ROM_PWMGenConfigure(PWM1_BASE, PWM_GEN_1, PWM_GEN_MODE_DBG_RUN);
+    ROM_PWMGenConfigure(PWM1_BASE, PWM_GEN_1, PWM_GEN_MODE_DBG_STOP);
     ROM_PWMGenConfigure(PWM1_BASE, PWM_GEN_3, PWM_GEN_MODE_DBG_RUN);
-    // ROM_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_0, 25000);
-    ROM_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_1, 25000); // 20ms period for servos
-    ROM_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 25000);
-    ROM_PWMGenPeriodSet(PWM1_BASE, PWM_GEN_3, 12500); // 100Hz for LEDs
-    ROM_PWMGenPeriodSet(PWM1_BASE, PWM_GEN_1, 1420);  // 880Hz for buzzer
-    // ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, 1875);
+    ROM_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_0, 25000); // 20ms period for servos
+    ROM_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_1, 25000);
+    ROM_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 12500); // 100Hz for LEDs
+    ROM_PWMGenPeriodSet(PWM1_BASE, PWM_GEN_3, 12500);
+    ROM_PWMGenPeriodSet(PWM1_BASE, PWM_GEN_1, 1420); // 880Hz for buzzer
+    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, 1875);
     ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_2, 1875); // 1.5ms for servo pulse
-    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4, 1875);
-    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_3, 1); // 0 pulse width doesn't work
+    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4, 1); // 0 pulse width doesn't work
+    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_3, 1);
     ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_6, 1);
     ROM_PWMOutputState(PWM0_BASE, PWM_OUT_0_BIT | PWM_OUT_2_BIT | PWM_OUT_4_BIT,
                        true);

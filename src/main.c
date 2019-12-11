@@ -57,8 +57,21 @@ int max(int a, int b) {
 }
 
 // brightness ∈ [0,1]
+void set_blue(float brightness) {
+    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4, max(1, brightness * 12500));
+}
+
+// brightness ∈ [0,1]
 void set_red(float brightness) {
     ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_6, max(1, brightness * 12500));
+}
+
+void beep_ms(uint16_t freq, float volume, uint16_t ms) {
+    uint16_t period = 1250000 / freq;
+    ROM_PWMGenPeriodSet(PWM1_BASE, PWM_GEN_1, period);
+    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_3, period * volume / 2);
+    wait_ms(ms);
+    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_3, 1);
 }
 
 void blink_red(void) {
@@ -108,6 +121,7 @@ volatile float X;
 volatile float dX = 0;
 volatile float Y;
 volatile float dY = 0;
+volatile uint16_t no_touch;
 
 const int xmax = 3700;
 const int xmin = 900;
@@ -129,18 +143,17 @@ void read_pos() {
         float new_x = ((x - xmin) / (float)(xmax - xmin)) * -2 + 1;
         dX = (new_x - X) * adc_read_freq;
         X = new_x;
-    } else {
-        dX = 0;
-    }
-    uint16_t y = read_adc('y');
-    if (y > ymin && y < ymax) {
+        uint16_t y = read_adc('y');
         y_buf[idx] = y;
         y = median_filter(y_buf);
         float new_y = ((y - ymin) / (float)(ymax - ymin)) * -2 + 1;
         dY = (new_y - Y) * adc_read_freq;
         Y = new_y;
+        no_touch = 0;
     } else {
+        dX = 0;
         dY = 0;
+        ++no_touch;
     }
     idx = (idx + 1) % bufsize;
 }
@@ -170,8 +183,8 @@ void manual_servo_control() {
 void p_control() {
     timer1_init(adc_read_freq);
     wait_ms(100);
-    const float xp = 0.3;
-    const float yp = 0.3;
+    const float xp = 0.6;
+    const float yp = 0.6;
     while (true) {
         wait_ms(10);
         set_x(-X * xp);
@@ -182,15 +195,20 @@ void p_control() {
 
 void pd_control() {
     timer1_init(adc_read_freq);
-    wait_ms(100);
+    wait_ms(1000);
     const float xp = 0.3;
     const float xd = 0.125;
     const float yp = 0.3;
     const float yd = 0.125;
     while (true) {
+        if (no_touch > adc_read_freq) {
+            set_x(0);
+            set_y(0);
+            continue;
+        }
         set_x(-X * xp + -dX * xd);
         set_y(-Y * yp + -dY * yd);
-        printf("%.2f\t%.2f\t%.2f\t%.2f\t\n\r", X, Y, dX, dY);
+        // printf("%.2f\t%.2f\t%.2f\t%.2f\t\n\r", X, Y, dX, dY);
         wait_ms(10);
     }
 }
@@ -214,9 +232,25 @@ int main(void) {
         x_buf[i] = (xmin + xmax) / 2;
         y_buf[i] = (ymin + ymax) / 2;
     }
+    beep_ms(440, .5f, 500);
+    beep_ms(494, .5f, 500);
+    beep_ms(523, .5f, 500);
+    beep_ms(587, .5f, 500);
+    beep_ms(659, .5f, 500);
+    beep_ms(698, .5f, 500);
+    beep_ms(784, .5f, 500);
+    beep_ms(880, .5f, 500);
     // manual_servo_control();
     // print_pos();
     // p_control();
-    pd_control();
-    while (1) {}
+    // pd_control();
+    while (1) {
+        set_red(.5f);
+        set_blue(.5f);
+        wait_ms(1000);
+        set_red(0);
+        set_blue(0);
+        beep_ms(2700, .2f, 100);
+        wait_ms(1000);
+    }
 }
