@@ -20,6 +20,7 @@ void timer0_init(uint32_t freq) {
     ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, 80000000 / freq);
     ROM_TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     ROM_IntEnable(INT_TIMER0A);
+    ROM_IntPrioritySet(INT_TIMER1A, 0xFF);
     ROM_TimerEnable(TIMER0_BASE, TIMER_BOTH);
 }
 
@@ -29,11 +30,11 @@ void timer1_init(uint32_t freq) {
     ROM_TimerLoadSet(TIMER1_BASE, TIMER_A, 80000000 / freq);
     ROM_TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
     ROM_IntEnable(INT_TIMER1A);
+    ROM_IntPrioritySet(INT_TIMER1A, 0);
     ROM_TimerEnable(TIMER1_BASE, TIMER_BOTH);
 }
 
 void adc_init(void) {
-    // Port Init
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
     ROM_ADCSequenceConfigure(ADC0_BASE, 3, ADC_TRIGGER_PROCESSOR, 0);
     ROM_ADCSequenceConfigure(ADC1_BASE, 3, ADC_TRIGGER_PROCESSOR, 0);
@@ -43,12 +44,8 @@ void adc_init(void) {
                                  ADC_CTL_CH6 | ADC_CTL_END | ADC_CTL_IE);
     ROM_ADCHardwareOversampleConfigure(ADC0_BASE, 64);
     ROM_ADCHardwareOversampleConfigure(ADC1_BASE, 64);
-    // ROM_ADCIntEnable(ADC0_BASE, 3);
-    // ROM_ADCIntEnable(ADC1_BASE, 3);
     ROM_ADCSequenceEnable(ADC0_BASE, 3);
     ROM_ADCSequenceEnable(ADC1_BASE, 3);
-    // ROM_IntEnable(INT_ADC0SS3);
-    // ROM_IntEnable(INT_ADC1SS3);
     ROM_ADCIntClear(ADC0_BASE, 3);
     ROM_ADCIntClear(ADC1_BASE, 3);
 
@@ -76,9 +73,9 @@ void pwm_init(void) {
     ROM_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_1, 25000);
     ROM_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 12500); // 100Hz for LEDs
     ROM_PWMGenPeriodSet(PWM1_BASE, PWM_GEN_3, 12500);
-    ROM_PWMGenPeriodSet(PWM1_BASE, PWM_GEN_1, 1420); // 880Hz for buzzer
-    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, 1875);
-    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_2, 1875); // 1.5ms for servo pulse
+    ROM_PWMGenPeriodSet(PWM1_BASE, PWM_GEN_1, 1420);  // 880Hz for buzzer
+    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, 1750); // neutral servo positions
+    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_2, 1700);
     ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4, 1); // 0 pulse width doesn't work
     ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_3, 1);
     ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_6, 1);
@@ -125,4 +122,5 @@ void init(void) {
     pwm_init();
     uart_init();
     adc_init();
+    ROM_GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE, GPIO_PIN_7);
 }

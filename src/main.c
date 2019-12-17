@@ -14,6 +14,43 @@
 #include <stdlib.h>
 #include <string.h>
 
+const float xp = 0.3f;
+const float xd = 0.15f;
+const float yp = 0.3f;
+const float yd = 0.1f;
+
+const size_t bufsize = 16;
+const size_t d_bufsize = 8;
+const uint32_t adc_read_freq = 250;
+
+const int xmax = 3100;
+const int xmin = 450;
+const int ymax = 3650;
+const int ymin = 2150;
+
+const int servo_range = 625;
+const int x_servo_zero = 1700;
+const int y_servo_zero = 1750;
+
+void debug_reset_cause(void) {
+    uint32_t cause = ROM_SysCtlResetCauseGet();
+    if (SYSCTL_CAUSE_BOR & cause) {
+        printf("\n\rRESET DUE TO BROWN OUT\n\r");
+    }
+    if (SYSCTL_CAUSE_EXT & cause) {
+        printf("\n\rExternal Reset\n\r");
+    }
+    if (SYSCTL_CAUSE_POR & cause) {
+        printf("\n\rPower On Reset\n\r");
+    }
+    if (SYSCTL_CAUSE_SW & cause) {
+        printf("\n\rSoftware Reset\n\r");
+    }
+    if (SYSCTL_CAUSE_HSRVREQ & cause) {
+        printf("\n\rHardware System Service Request Reset\n\r");
+    }
+}
+
 volatile uint32_t delay_timer;
 
 void systick_handler(void) {
@@ -28,26 +65,18 @@ void wait_ms(uint32_t t) {
     ROM_SysTickIntDisable();
 }
 
-void timer0a_handler(void) {
-    ROM_TimerIntClear(TIMER0_BASE, TIMER_A);
-    ROM_GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_7,
-                     ~ROM_GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_7));
-}
-
-const int servo_range = 625;
-const int x_servo_zero = 1750;
-const int y_servo_zero = 1700;
-
 // pos ∈ [-1,1]
 void set_x(float pos) {
-    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_2,
+    // printf("%d\t\n\r",
+    //        (int)(x_servo_zero - fmin(fmax(-1.f, pos), 1.f) * servo_range));
+    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0,
                          x_servo_zero -
                              fmin(fmax(-1.f, pos), 1.f) * servo_range);
 }
 
 // pos ∈ [-1,1]
 void set_y(float pos) {
-    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4,
+    ROM_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_2,
                          y_servo_zero -
                              fmin(fmax(-1.f, pos), 1.f) * servo_range);
 }
@@ -72,6 +101,23 @@ void beep_ms(uint16_t freq, float volume, uint16_t ms) {
     ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_3, period * volume / 2);
     wait_ms(ms);
     ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_3, 1);
+}
+
+void beep_beep(void) {
+    beep_ms(880, 0.75, 100);
+    wait_ms(50);
+    beep_ms(880, 0.75, 100);
+}
+
+void startup_beeps(void) {
+    beep_ms(440, .2f, 100);
+    beep_ms(494, .2f, 100);
+    beep_ms(523, .2f, 100);
+    beep_ms(587, .2f, 100);
+    beep_ms(659, .2f, 100);
+    beep_ms(698, .2f, 100);
+    beep_ms(784, .2f, 100);
+    beep_ms(880, .2f, 100);
 }
 
 void blink_red(void) {
@@ -111,22 +157,24 @@ int cmp(const void* a, const void* b) {
     return (*(uint16_t*)a) - (*(uint16_t*)b);
 }
 
-const size_t bufsize = 16;
-const uint32_t adc_read_freq = 100;
-
 volatile size_t idx = 0;
 volatile uint16_t x_buf[bufsize];
 volatile uint16_t y_buf[bufsize];
-volatile float X;
-volatile float dX = 0;
-volatile float Y;
-volatile float dY = 0;
-volatile uint16_t no_touch;
 
-const int xmax = 3700;
-const int xmin = 900;
-const int ymax = 3650;
-const int ymin = 2150;
+volatile size_t d_idx = 0;
+volatile float dX_buf[d_bufsize];
+volatile float dY_buf[d_bufsize];
+
+volatile float setX;
+volatile float X;
+volatile float dX;
+volatile float sumX;
+volatile float setY;
+volatile float Y;
+volatile float dY;
+volatile float sumY;
+
+volatile uint16_t no_touch;
 
 uint16_t median_filter(uint16_t* buf) {
     static uint16_t buf_sort[bufsize];
@@ -135,27 +183,41 @@ uint16_t median_filter(uint16_t* buf) {
     return buf_sort[bufsize / 2];
 }
 
-void read_pos() {
+float avg_filter(float* buf, size_t len) {
+    float sum = 0.f;
+    for (int i = 0; i < len; ++i) { sum += buf[i]; }
+    return sum / len;
+}
+
+void read_pos(void) {
     uint16_t x = read_adc('x');
-    if (x > xmin && x < xmax) {
-        x_buf[idx] = x;
-        x = median_filter(x_buf);
-        float new_x = ((x - xmin) / (float)(xmax - xmin)) * -2 + 1;
-        dX = (new_x - X) * adc_read_freq;
-        X = new_x;
-        uint16_t y = read_adc('y');
-        y_buf[idx] = y;
-        y = median_filter(y_buf);
-        float new_y = ((y - ymin) / (float)(ymax - ymin)) * -2 + 1;
-        dY = (new_y - Y) * adc_read_freq;
-        Y = new_y;
-        no_touch = 0;
-    } else {
-        dX = 0;
-        dY = 0;
+    if (x < xmin || x > xmax) {
+        dX = 0.f;
+        dY = 0.f;
         ++no_touch;
+        return;
     }
+
+    x_buf[idx] = x;
+    x = median_filter(x_buf);
+    float new_x = ((x - xmin) / (float)(xmax - xmin)) * -2 + 1;
+    dX_buf[d_idx] = (new_x - X) * adc_read_freq;
+    X = new_x;
+    dX = avg_filter(dX_buf, d_bufsize);
+    sumX += signbit(X) == signbit(sumX) ? X / adc_read_freq : -sumX;
+
+    uint16_t y = read_adc('y');
+    y_buf[idx] = y;
+    y = median_filter(y_buf);
+    float new_y = ((y - ymin) / (float)(ymax - ymin)) * -2 + 1;
+    dY_buf[d_idx] = (new_y - Y) * adc_read_freq;
+    Y = new_y;
+    dY = avg_filter(dY_buf, d_bufsize);
+    sumY += signbit(Y) == signbit(sumY) ? Y / adc_read_freq : -sumY;
+
+    no_touch = 0;
     idx = (idx + 1) % bufsize;
+    d_idx = (d_idx + 1) % d_bufsize;
 }
 
 void timer1a_handler(void) {
@@ -163,10 +225,10 @@ void timer1a_handler(void) {
     read_pos();
 }
 
-void manual_servo_control() {
+void manual_servo_control(void) {
     float xpos = 0;
     float ypos = 0;
-    const float delta = 0.1;
+    const float delta = 0.01;
     while (true) {
         blink_red();
         char c = ROM_UARTCharGet(UART0_BASE);
@@ -176,51 +238,69 @@ void manual_servo_control() {
         case 's': set_y(ypos = fmax(-1, ypos - delta)); break;
         case 'd': set_x(xpos = fmin(1, xpos + delta)); break;
         }
-        printf("%.2f, %.2f\n\r", xpos, ypos);
+        // printf("%.2f, %.2f\n\r", xpos, ypos);
     }
 }
 
-void p_control() {
-    timer1_init(adc_read_freq);
-    wait_ms(100);
-    const float xp = 0.6;
-    const float yp = 0.6;
-    while (true) {
-        wait_ms(10);
-        set_x(-X * xp);
-        set_y(-Y * yp);
-        printf("%.2f\t%.2f\t\n\r", X, Y);
+volatile bool did_beep = false;
+volatile bool pls_beep = false;
+
+void timer0a_handler(void) {
+    ROM_TimerIntClear(TIMER0_BASE, TIMER_A);
+    if (no_touch > adc_read_freq) {
+        set_x(0);
+        set_y(0);
+        pls_beep = true;
+        return;
     }
+    pls_beep = did_beep = false;
+    float x = (setX - X) * xp + -dX * xd;
+    set_x(x);
+    set_blue(fmin(0.f, x + 1) / 8);
+    float y = (setY - Y) * yp + -dY * yd;
+    set_y(y);
+    set_red(fmin(0.f, y + 1) / 8);
 }
 
-void pd_control() {
+void control_loop(void) {
     timer1_init(adc_read_freq);
-    wait_ms(1000);
-    const float xp = 0.3;
-    const float xd = 0.125;
-    const float yp = 0.3;
-    const float yd = 0.125;
+    wait_ms(1000 * bufsize / adc_read_freq);
+    timer0_init(100);
     while (true) {
-        if (no_touch > adc_read_freq) {
-            set_x(0);
-            set_y(0);
-            continue;
+        if (pls_beep && !did_beep) {
+            beep_beep();
+            did_beep = true;
         }
-        set_x(-X * xp + -dX * xd);
-        set_y(-Y * yp + -dY * yd);
-        // printf("%.2f\t%.2f\t%.2f\t%.2f\t\n\r", X, Y, dX, dY);
+        char c = ROM_UARTCharGetNonBlocking(UART0_BASE);
+        switch (c) {
+        case 'a':
+            setX = -0.5f;
+            setY = 0.0;
+            break;
+        case 's':
+            setX = 0.0f;
+            setY = 0.0;
+            break;
+        case 'd':
+            setX = 0.4f;
+            setY = 0.0;
+            break;
+        }
+        // printf("%d\t%d\t\n\r", (int)(X * 2048.f), (int)(Y * 2048.f));
+        printf("%.02f\t%.02f\t\n\r", setX - X, setY - Y);
         wait_ms(10);
     }
 }
 
-void print_pos() {
+void print_pos(void) {
     timer1_init(adc_read_freq);
     wait_ms(100);
-    while (1) {
+    while (true) {
         wait_ms(10);
-        // printf("%d\n\r", read_adc('y'));
+        // printf("%d\n\r", read_adc('x'));
+        // printf("%d\t%d\t\n\r", median_filter(x_buf), median_filter(y_buf));
         printf("%.2f\t%.2f\t\n\r", X, Y);
-        // printf("%d\t%d\t\n\r", (int)(2048 * (X + 1)), (int)(2048 * (Y + 1)));
+        // printf("%d\t%d\t\n\r", (int)(X * 4000), (int)(dX * 1000.f));
     }
 }
 
@@ -232,25 +312,10 @@ int main(void) {
         x_buf[i] = (xmin + xmax) / 2;
         y_buf[i] = (ymin + ymax) / 2;
     }
-    beep_ms(440, .5f, 500);
-    beep_ms(494, .5f, 500);
-    beep_ms(523, .5f, 500);
-    beep_ms(587, .5f, 500);
-    beep_ms(659, .5f, 500);
-    beep_ms(698, .5f, 500);
-    beep_ms(784, .5f, 500);
-    beep_ms(880, .5f, 500);
+    for (int i = 0; i < d_bufsize; ++i) { dX_buf[i] = dY_buf[i] = 0.f; }
+    setX = setY = X = Y = dX = dY = sumX = sumY = 0.f;
+    startup_beeps();
     // manual_servo_control();
     // print_pos();
-    // p_control();
-    // pd_control();
-    while (1) {
-        set_red(.5f);
-        set_blue(.5f);
-        wait_ms(1000);
-        set_red(0);
-        set_blue(0);
-        beep_ms(2700, .2f, 100);
-        wait_ms(1000);
-    }
+    control_loop();
 }
