@@ -14,23 +14,39 @@
 #include <stdlib.h>
 #include <string.h>
 
+// PID constants
 const float xp = 0.3f;
 const float xd = 0.15f;
 const float yp = 0.3f;
-const float yd = 0.1f;
+const float yd = 0.125f;
+const float xi = 0.0001f;
+const float yi = 0.0001f;
 
-const size_t bufsize = 16;
-const size_t d_bufsize = 8;
+const size_t bufsize = 16;  // median filter
+const size_t d_bufsize = 8; // avg filter
 const uint32_t adc_read_freq = 250;
 
+// setpoints' distance from origin
+const float x_dist = 0.5f;
+const float y_dist = 0.4f;
+
+// touchscreen reading extremes
 const int xmax = 3100;
 const int xmin = 450;
 const int ymax = 3650;
 const int ymin = 2150;
 
 const int servo_range = 625;
-const int x_servo_zero = 1700;
+const int x_servo_zero = 1725;
 const int y_servo_zero = 1750;
+
+enum {
+    NORMAL,
+    CIRCLE,
+    REVERSE_CIRCLE,
+    RECT,
+    REVERSE_RECT,
+} mode;
 
 void debug_reset_cause(void) {
     uint32_t cause = ROM_SysCtlResetCauseGet();
@@ -242,6 +258,20 @@ void manual_servo_control(void) {
     }
 }
 
+const uint32_t counter_freq = 1000;
+const float speed = 0.25f;
+const float dt = speed / counter_freq;
+volatile float time;
+const float tau = 6.2831853f;
+
+void timer2a_handler(void) {
+    ROM_TimerIntClear(TIMER2_BASE, TIMER_A);
+    time += dt;
+    if (time >= tau) {
+        time -= tau;
+    }
+}
+
 volatile bool did_beep = false;
 volatile bool pls_beep = false;
 
@@ -254,16 +284,41 @@ void timer0a_handler(void) {
         return;
     }
     pls_beep = did_beep = false;
-    float x = (setX - X) * xp + -dX * xd;
+    float temp = time;
+    switch (mode) {
+    case NORMAL: break;
+    case CIRCLE:
+        setX = cosf(time) * x_dist;
+        setY = sinf(time) * y_dist;
+        break;
+    case REVERSE_CIRCLE:
+        setX = cosf(-time) * x_dist;
+        setY = sinf(-time) * y_dist;
+        break;
+    case REVERSE_RECT: temp = -time;
+    case RECT:
+        if (time < tau / 4) {
+            setX = -x_dist, setY = -y_dist;
+        } else if (time < tau / 2) {
+            setX = x_dist, setY = -y_dist;
+        } else if (time < 3 * tau / 2) {
+            setX = x_dist, setY = y_dist;
+        } else {
+            setX = -x_dist, setY = y_dist;
+        }
+        break;
+    }
+    float x = (setX - X) * xp - dX * xd - xi * sumX;
     set_x(x);
-    set_blue(fmin(0.f, x + 1) / 8);
-    float y = (setY - Y) * yp + -dY * yd;
+    set_blue(fmin(0.f, x + 1) / 4);
+    float y = (setY - Y) * yp - dY * yd - yi * sumY;
     set_y(y);
-    set_red(fmin(0.f, y + 1) / 8);
+    set_red(fmin(0.f, y + 1) / 4);
 }
 
 void control_loop(void) {
     timer1_init(adc_read_freq);
+    timer2_init(counter_freq);
     wait_ms(1000 * bufsize / adc_read_freq);
     timer0_init(100);
     while (true) {
@@ -271,24 +326,40 @@ void control_loop(void) {
             beep_beep();
             did_beep = true;
         }
-        char c = ROM_UARTCharGetNonBlocking(UART0_BASE);
-        switch (c) {
-        case 'a':
-            setX = -0.5f;
-            setY = 0.0;
-            break;
-        case 's':
-            setX = 0.0f;
-            setY = 0.0;
-            break;
-        case 'd':
-            setX = 0.4f;
-            setY = 0.0;
-            break;
-        }
-        // printf("%d\t%d\t\n\r", (int)(X * 2048.f), (int)(Y * 2048.f));
-        printf("%.02f\t%.02f\t\n\r", setX - X, setY - Y);
         wait_ms(10);
+        printf("%-5d\t%-5d\t\n\r", (int)((setX - X) * 2048.f),
+               (int)((setY - Y) * 2048.f));
+        // printf("%.02f\t%.02f\t\n\r", setX - X, setY - Y);
+        if (!ROM_UARTCharsAvail(UART0_BASE)) {
+            continue;
+        }
+        int32_t c = ROM_UARTCharGetNonBlocking(UART0_BASE);
+        char setpoints[] = "qweasdzxc";
+        for (int i = 0; i < 9; ++i) {
+            if (c == setpoints[i]) {
+                mode = NORMAL;
+            }
+        }
+        switch (c) {
+        case 'q': setX = -x_dist, setY = y_dist; break;
+        case 'w': setX = 0.f, setY = y_dist; break;
+        case 'e': setX = x_dist, setY = y_dist; break;
+        case 'a': setX = -x_dist, setY = 0.0; break;
+        case 's': setX = 0.f, setY = 0.0; break;
+        case 'd': setX = x_dist, setY = 0.0; break;
+        case 'z': setX = -x_dist, setY = -y_dist; break;
+        case 'x': setX = 0.f, setY = -y_dist; break;
+        case 'c': setX = x_dist, setY = -y_dist; break;
+        case '1': mode = RECT; break;
+        case '2': mode = REVERSE_RECT; break;
+        case '3': mode = CIRCLE; break;
+        case '4': mode = REVERSE_CIRCLE; break;
+        case 'h': beep_ms(196, .25f, 250); break;
+        case 'j': beep_ms(262, .25f, 250); break;
+        case 'k': beep_ms(294, .25f, 250); break;
+        case 'l': beep_ms(330, .25f, 250); break;
+        case ';': beep_ms(392, .25f, 250); break;
+        }
     }
 }
 
@@ -313,7 +384,7 @@ int main(void) {
         y_buf[i] = (ymin + ymax) / 2;
     }
     for (int i = 0; i < d_bufsize; ++i) { dX_buf[i] = dY_buf[i] = 0.f; }
-    setX = setY = X = Y = dX = dY = sumX = sumY = 0.f;
+    time = setX = setY = X = Y = dX = dY = sumX = sumY = 0.f;
     startup_beeps();
     // manual_servo_control();
     // print_pos();

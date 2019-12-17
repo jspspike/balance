@@ -34,6 +34,16 @@ void timer1_init(uint32_t freq) {
     ROM_TimerEnable(TIMER1_BASE, TIMER_BOTH);
 }
 
+void timer2_init(uint32_t freq) {
+    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER2);
+    ROM_TimerConfigure(TIMER2_BASE, TIMER_CFG_PERIODIC);
+    ROM_TimerLoadSet(TIMER2_BASE, TIMER_A, 80000000 / freq);
+    ROM_TimerIntEnable(TIMER2_BASE, TIMER_TIMA_TIMEOUT);
+    ROM_IntEnable(INT_TIMER2A);
+    ROM_IntPrioritySet(INT_TIMER2A, 0);
+    ROM_TimerEnable(TIMER2_BASE, TIMER_BOTH);
+}
+
 void adc_init(void) {
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
     ROM_ADCSequenceConfigure(ADC0_BASE, 3, ADC_TRIGGER_PROCESSOR, 0);
